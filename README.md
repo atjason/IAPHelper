@@ -74,7 +74,7 @@ IAP.validateReceipt(Constants.IAPSharedSecret) { (statusCode, products) in
 })
 ```
 
-**Note**: IAPHelper directly validate with Apple's server. It's simple, but has risk. You decide use your own server or not as Apple suggested:
+**Note**: IAPHelper directly validate with Apple's server. It's simple, but has risk. You decide to use your own server or not. Here's what Apple suggested:
 
 > Use a trusted server to communicate with the App Store. Using your own server lets you design your app to recognize and trust only your server, and lets you ensure that your server connects with the App Store server. It is not possible to build a trusted connection between a user’s device and the App Store directly because you don’t control either end of that connection.
 
