@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10116" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10116"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController" customModule="IAPDemo" customModuleProvider="target">
+            <connections>
+                <outlet property="window" destination="F0z-JX-Cv5" id="gIp-Ho-8D9"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="IAP Demo" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="F0z-JX-Cv5">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="196" y="240" width="216" height="252"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <view key="contentView" id="se5-gp-TjO">
+                <rect key="frame" x="0.0" y="0.0" width="216" height="252"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="VRN-Dr-f9a">
+                        <rect key="frame" x="14" y="204" width="188" height="32"/>
+                        <buttonCell key="cell" type="push" title="Get Product List" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Kbs-fr-QhQ">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="getProductList:" target="-2" id="gQd-kp-gOf"/>
+                            <binding destination="-2" name="enabled" keyPath="self.isWorking" id="bvm-0o-2Si">
+                                <dictionary key="options">
+                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LWh-Me-KZz">
+                        <rect key="frame" x="14" y="142" width="188" height="32"/>
+                        <buttonCell key="cell" type="push" title="Purchase" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Af0-fO-ECU">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="purchase:" target="-2" id="Chg-Mu-d4T"/>
+                            <binding destination="-2" name="enabled" keyPath="self.isWorking" id="0Fg-tw-PEP">
+                                <dictionary key="options">
+                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pl8-BM-UyI">
+                        <rect key="frame" x="14" y="109" width="188" height="32"/>
+                        <buttonCell key="cell" type="push" title="Restore" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="scS-kd-l5T">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="restore:" target="-2" id="sXL-9d-sAX"/>
+                            <binding destination="-2" name="enabled" keyPath="self.isWorking" id="kbf-Nh-ag2">
+                                <dictionary key="options">
+                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwm-Oq-JiC">
+                        <rect key="frame" x="14" y="76" width="188" height="32"/>
+                        <buttonCell key="cell" type="push" title="Validate" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="6H3-MN-DZY">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="validate:" target="-2" id="VIY-Qe-u5p"/>
+                            <binding destination="-2" name="enabled" keyPath="self.isWorking" id="K7z-TI-hfM">
+                                <dictionary key="options">
+                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                </dictionary>
+                            </binding>
+                        </connections>
+                    </button>
+                    <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7Zb-FG-lQ4">
+                        <rect key="frame" x="18" y="180" width="181" height="26"/>
+                        <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="MPf-cS-Ebq" id="Ew9-BA-tpH">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="menu"/>
+                            <menu key="menu" id="V1f-Pu-qeU">
+                                <items>
+                                    <menuItem title="Item 1" state="on" id="MPf-cS-Ebq"/>
+                                    <menuItem title="Item 2" id="O0Z-cj-CGF"/>
+                                    <menuItem title="Item 3" id="eZ9-9E-3ge"/>
+                                </items>
+                            </menu>
+                        </popUpButtonCell>
+                        <connections>
+                            <binding destination="HvB-4V-j8Z" name="content" keyPath="arrangedObjects" id="C37-DO-313"/>
+                            <binding destination="HvB-4V-j8Z" name="contentValues" keyPath="arrangedObjects.description" previousBinding="C37-DO-313" id="py6-Me-U1b"/>
+                            <binding destination="-2" name="enabled" keyPath="self.isWorking" id="fQt-kt-lM7">
+                                <dictionary key="options">
+                                    <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                </dictionary>
+                            </binding>
+                            <binding destination="-2" name="selectedObject" keyPath="self.selectedAccountType" previousBinding="py6-Me-U1b" id="EgG-jS-G8X"/>
+                        </connections>
+                    </popUpButton>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gL6-FI-DSp">
+                        <rect key="frame" x="18" y="20" width="180" height="34"/>
+                        <textFieldCell key="cell" lineBreakMode="charWrapping" sendsActionOnEndEditing="YES" title="Result" id="iTs-cr-beA">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections>
+                            <binding destination="-2" name="hidden" keyPath="self.isWorking" id="NMj-Td-jWf"/>
+                            <binding destination="-2" name="value" keyPath="self.resultString" id="JXZ-qh-tw8"/>
+                        </connections>
+                    </textField>
+                    <box verticalHuggingPriority="750" fixedFrame="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="p05-4d-13d">
+                        <rect key="frame" x="20" y="60" width="176" height="5"/>
+                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
+                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        <font key="titleFont" metaFont="system"/>
+                    </box>
+                    <progressIndicator wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="Vdq-jO-hYb">
+                        <rect key="frame" x="92" y="22" width="32" height="32"/>
+                        <connections>
+                            <binding destination="-2" name="animate" keyPath="self.isWorking" id="hel-tg-onJ"/>
+                        </connections>
+                    </progressIndicator>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="0bl-1N-AYu"/>
+            </connections>
+            <point key="canvasLocation" x="146" y="329"/>
+        </window>
+        <userDefaultsController representsSharedInstance="YES" id="CvZ-I9-HOR"/>
+        <arrayController objectClassName="AccountType" id="HvB-4V-j8Z" userLabel="AccounTypeList">
+            <connections>
+                <binding destination="-2" name="contentArray" keyPath="self.accountTypeList" id="3t3-Fz-5z6"/>
+            </connections>
+        </arrayController>
+    </objects>
+</document>
