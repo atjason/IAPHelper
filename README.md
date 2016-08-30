@@ -98,5 +98,5 @@ This library can't help you understand the basic concepts for IAP. For it, pleas
 
 ## What's Test
 
-It's mainly test on macOS 10.10 with auto-renew subscription. Now it's used by my app of [iPic](http://toolinbox.net/en/iPic/).
+It's mainly test on macOS 10.11 and Sierra with auto-renew subscription. Now it's used by my app of [iPic](http://toolinbox.net/en/iPic/).
 
