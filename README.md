@@ -18,9 +18,6 @@ IAP.requestProducts(productIdentifiers) { (response, error) in
 	} else if let invalidProductIdentifiers = response?.invalidProductIdentifiers {
 		// Some products id are invalid
 	   
-	} else if error?.code == SKErrorPaymentCancelled {
-		// User cancelled
-	   
 	} else {
 		// Some error happened
 	}
@@ -34,12 +31,14 @@ IAP.requestProducts(productIdentifiers) { (response, error) in
 	if let identifier = productIdentifier {
 		// The product of 'productIdentifier' purchased.
 	     
-	} else if error?.code == SKErrorPaymentCancelled {
+	} else if let error = error as? NSError {
+      if error.code == SKError.Code.paymentCancelled.rawValue {
 		// User cancelled
-	     
-	} else {
+        
+      } else {
 		// Some error happened
-	}
+      }
+    }
 })
 ```
 
@@ -50,15 +49,17 @@ IAP.requestProducts(productIdentifiers) { (response, error) in
 	 if !productIdentifiers.isEmpty {
 	 	// Products restored
 	   
-	 } else if error?.code == SKErrorUnknown {
-	 	// NOTE: if no product ever purchased, will return this error.
-	   
-	 } else if error?.code == SKErrorPaymentCancelled {
-	 	// User cancelled
-	   
-	 } else {
-	 	// Some error happened
-	 }
+	 } else if let error = error as? NSError {
+       if error.code == SKError.Code.paymentCancelled.rawValue {
+	  	// User cancelled
+        
+       } else {
+	  	// Some error happened
+       }
+      
+    } else {
+      // No previous purchases were found.
+    }
 }
 ```
 
@@ -91,12 +92,12 @@ Just copy `IAPHelper.swift` to your project, and use it as the demo shows.
 This library can't help you understand the basic concepts for IAP. For it, please refer to these documents.
 
 - 	[In-App Purchase Programming Guide](https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/StoreKitGuide/Introduction.html)
--  [In-App Purchase Configuration Guide for iTunes Connect](https://developer.apple.com/library/ios/documentation/LanguagesUtilities/Conceptual/iTunesConnectInAppPurchase_Guide/Chapters/Introduction.html)
--  [In-App Purchase Best Practices](https://developer.apple.com/library/ios/technotes/tn2387/_index.html)
--  [Receipt Validation Programming Guide](https://developer.apple.com/library/ios/releasenotes/General/ValidateAppStoreReceipt/Introduction.html)
--  [Adding In-App Purchase to your iOS and macOS Applications](https://developer.apple.com/library/ios/technotes/tn2259/_index.html)
+- 	[In-App Purchase Configuration Guide for iTunes Connect](https://developer.apple.com/library/ios/documentation/LanguagesUtilities/Conceptual/iTunesConnectInAppPurchase_Guide/Chapters/Introduction.html)
+- 	[In-App Purchase Best Practices](https://developer.apple.com/library/ios/technotes/tn2387/_index.html)
+- 	[Receipt Validation Programming Guide](https://developer.apple.com/library/ios/releasenotes/General/ValidateAppStoreReceipt/Introduction.html)
+- 	[Adding In-App Purchase to your iOS and macOS Applications](https://developer.apple.com/library/ios/technotes/tn2259/_index.html)
 
 ## What's Test
 
-It's mainly test on macOS 10.11 and Sierra with auto-renew subscription. Now it's used by my app of [iPic](http://toolinbox.net/en/iPic/).
+It's mainly test on macOS 10.11 and Sierra with auto-renew subscription. Now it's used by my app of [iPaste](https://itunes.apple.com/app/id1056935452?ls=1&mt=12), [iTimer](https://itunes.apple.com/app/id1062139745?ls=1&mt=12), [iHosts](https://itunes.apple.com/app/id1102004240?ls=1&mt=12), [iPic](https://itunes.apple.com/app/id1101244278?ls=1&mt=12).
 
