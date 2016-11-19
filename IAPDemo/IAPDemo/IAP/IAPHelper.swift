@@ -13,7 +13,7 @@ extension SKProduct {
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
     formatter.locale = self.priceLocale
-    return formatter.string(from: self.price ?? 0)
+    return formatter.string(from: self.price)
   }
 }
 
@@ -142,9 +142,6 @@ extension IAPHelper: SKPaymentTransactionObserver {
         
       case SKPaymentTransactionState.purchasing,
            SKPaymentTransactionState.deferred:
-        break
-        
-      default:
         break
       }
     }
