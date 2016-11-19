@@ -25,11 +25,11 @@ class AccountType: NSObject {
     self.localizedTitleSuffix = localizedTitleSuffix
   }
   
-  func equal(account: AccountType) -> Bool {
+  func equal(_ account: AccountType) -> Bool {
     return self.productIdentifier == account.productIdentifier
   }
   
-  static func getAccountType(productIdentifier: String) -> AccountType? {
+  static func getAccountType(_ productIdentifier: String) -> AccountType? {
     switch productIdentifier {
     case Free.productIdentifier:
       return Free

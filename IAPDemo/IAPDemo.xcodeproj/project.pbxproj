@@ -29,7 +29,7 @@
 		963D7A781D6D44B700072FF3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		963D7A7D1D6D47D200072FF3 /* MainWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainWindowController.swift; path = MainWindow/MainWindowController.swift; sourceTree = "<group>"; };
 		963D7A7E1D6D47D200072FF3 /* MainWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MainWindowController.xib; path = MainWindow/MainWindowController.xib; sourceTree = "<group>"; };
-		963D7A811D6D4E3E00072FF3 /* IAPHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IAPHelper.swift; path = IAP/IAPHelper.swift; sourceTree = "<group>"; };
+		963D7A811D6D4E3E00072FF3 /* IAPHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = IAPHelper.swift; path = IAP/IAPHelper.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		963D7A861D6D8AC500072FF3 /* Account.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Account.swift; path = IAP/Account.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -144,6 +144,7 @@
 					96399A6E1D6D431D0083343C = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = 6N8QAK7VZN;
+						LastSwiftMigration = 0810;
 						SystemCapabilities = {
 							com.apple.InAppPurchase = {
 								enabled = 1;
@@ -307,6 +308,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.toolinbox.iap;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -322,6 +324,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.toolinbox.iap;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

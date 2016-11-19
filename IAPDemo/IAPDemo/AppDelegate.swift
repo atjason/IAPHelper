@@ -13,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   
   var mainWindowController: MainWindowController?
   
-  func applicationDidFinishLaunching(aNotification: NSNotification) {
+  func applicationDidFinishLaunching(_ aNotification: Notification) {
     let mainWindowController = MainWindowController()
     mainWindowController.showWindow(self)
     
@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     IAP.addObserver()
   }
   
-  func applicationWillTerminate(notification: NSNotification) {
+  func applicationWillTerminate(_ notification: Notification) {
     IAP.removeObserver()
   }
 }

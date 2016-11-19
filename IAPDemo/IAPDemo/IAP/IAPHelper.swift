@@ -8,17 +8,26 @@
 
 import StoreKit
 
-let IAP = IAPHelper.sharedInstance
+extension SKProduct {
+  public func localizedPrice() -> String? {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.locale = self.priceLocale
+    return formatter.string(from: self.price ?? 0)
+  }
+}
+
+public let IAP = IAPHelper.sharedInstance
 
 public typealias ProductIdentifier = String
-public typealias ProductWithExpireDate = [ProductIdentifier: NSDate]
+public typealias ProductWithExpireDate = [ProductIdentifier: Date]
 
-public typealias ProductsRequestHandler = (response: SKProductsResponse?, error: NSError?) -> ()
-public typealias PurchaseHandler = (productIdentifier: ProductIdentifier?, error: NSError?) -> ()
-public typealias RestoreHandler = (productIdentifiers: Set<ProductIdentifier>, error: NSError?) -> ()
-public typealias ValidateHandler = (statusCode: Int?, products: ProductWithExpireDate?) -> ()
+public typealias ProductsRequestHandler = (_ response: SKProductsResponse?, _ error: Error?) -> ()
+public typealias PurchaseHandler = (_ productIdentifier: ProductIdentifier?, _ error: Error?) -> ()
+public typealias RestoreHandler = (_ productIdentifiers: Set<ProductIdentifier>, _ error: Error?) -> ()
+public typealias ValidateHandler = (_ statusCode: Int?, _ products: ProductWithExpireDate?, _ json: [String: Any]?) -> ()
 
-class IAPHelper: NSObject {
+public class IAPHelper: NSObject {
   
   private override init() {
     super.init()
@@ -27,25 +36,25 @@ class IAPHelper: NSObject {
   }
   static let sharedInstance = IAPHelper()
   
-  private var productsRequest: SKProductsRequest?
-  private var productsRequestHandler: ProductsRequestHandler?
+  fileprivate var productsRequest: SKProductsRequest?
+  fileprivate var productsRequestHandler: ProductsRequestHandler?
   
-  private var purchaseHandler: PurchaseHandler?
-  private var restoreHandler: RestoreHandler?
+  fileprivate var purchaseHandler: PurchaseHandler?
+  fileprivate var restoreHandler: RestoreHandler?
   
   private var observerAdded = false
   
-  func addObserver() {
+  public func addObserver() {
     if !observerAdded {
       observerAdded = true
-      SKPaymentQueue.defaultQueue().addTransactionObserver(self)
+      SKPaymentQueue.default().add(self)
     }
   }
   
-  func removeObserver() {
+  public func removeObserver() {
     if observerAdded {
       observerAdded = false
-      SKPaymentQueue.defaultQueue().removeTransactionObserver(self)
+      SKPaymentQueue.default().remove(self)
     }
   }
 }
@@ -54,7 +63,7 @@ class IAPHelper: NSObject {
 
 extension IAPHelper {
   
-  func requestProducts(productIdentifiers: Set<ProductIdentifier>, handler: ProductsRequestHandler) {
+  public func requestProducts(_ productIdentifiers: Set<ProductIdentifier>, handler: @escaping ProductsRequestHandler) {
     productsRequest?.cancel()
     productsRequestHandler = handler
     
@@ -63,33 +72,33 @@ extension IAPHelper {
     productsRequest?.start()
   }
   
-  func purchaseProduct(productIdentifier: ProductIdentifier, handler: PurchaseHandler) {
+  public func purchaseProduct(_ productIdentifier: ProductIdentifier, handler: @escaping PurchaseHandler) {
     purchaseHandler = handler
     
     let payment = SKMutablePayment()
     payment.productIdentifier = productIdentifier
-    SKPaymentQueue.defaultQueue().addPayment(payment)
+    SKPaymentQueue.default().add(payment)
   }
   
-  func restorePurchases(handler: RestoreHandler) {
+  public func restorePurchases(_ handler: @escaping RestoreHandler) {
     restoreHandler = handler
-    SKPaymentQueue.defaultQueue().restoreCompletedTransactions()
+    SKPaymentQueue.default().restoreCompletedTransactions()
   }
   
   /*
    * password: Only used for receipts that contain auto-renewable subscriptions.
    *           It's your app’s shared secret (a hexadecimal string) which was generated on iTunesConnect.
    */
-  func validateReceipt(password: String, handler: ValidateHandler) {
-    validateReceiptInternal(isProduction: true, password: password) { (statusCode, products) in
+  public func validateReceipt(_ password: String? = nil, handler: @escaping ValidateHandler) {
+    validateReceiptInternal(true, password: password) { (statusCode, products, json) in
       
-      if let statusCode = statusCode where statusCode == ReceiptStatus.TestReceipt.rawValue {
-        self.validateReceiptInternal(isProduction: false, password: password, handler: { (statusCode, products) in
-          handler(statusCode: statusCode, products: products)
+      if let statusCode = statusCode , statusCode == ReceiptStatus.testReceipt.rawValue {
+        self.validateReceiptInternal(false, password: password, handler: { (statusCode, products, json) in
+          handler(statusCode, products, json)
         })
         
       } else {
-        handler(statusCode: statusCode, products: products)
+        handler(statusCode, products, json)
       }
     }
   }
@@ -98,13 +107,13 @@ extension IAPHelper {
 // MARK: SKProductsRequestDelegate
 
 extension IAPHelper: SKProductsRequestDelegate {
-  func productsRequest(request: SKProductsRequest, didReceiveResponse response: SKProductsResponse) {
-    productsRequestHandler?(response: response, error: nil)
+  public func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
+    productsRequestHandler?(response, nil)
     clearRequestAndHandler()
   }
   
-  func request(request: SKRequest, didFailWithError error: NSError?) {
-    productsRequestHandler?(response: nil, error: error)
+  public func request(_ request: SKRequest, didFailWithError error: Error) {
+    productsRequestHandler?(nil, error)
     clearRequestAndHandler()
   }
   
@@ -118,21 +127,21 @@ extension IAPHelper: SKProductsRequestDelegate {
 
 extension IAPHelper: SKPaymentTransactionObserver {
   
-  func paymentQueue(queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+  public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
     for transaction in transactions {
       switch (transaction.transactionState) {
 
-      case SKPaymentTransactionStatePurchased:
+      case SKPaymentTransactionState.purchased:
         completePurchaseTransaction(transaction)
         
-      case SKPaymentTransactionStateRestored:
+      case SKPaymentTransactionState.restored:
         finishTransaction(transaction)
         
-      case SKPaymentTransactionStateFailed:
+      case SKPaymentTransactionState.failed:
         failedTransaction(transaction)
         
-      case SKPaymentTransactionStatePurchasing,
-           SKPaymentTransactionStateDeferred:
+      case SKPaymentTransactionState.purchasing,
+           SKPaymentTransactionState.deferred:
         break
         
       default:
@@ -141,45 +150,43 @@ extension IAPHelper: SKPaymentTransactionObserver {
     }
   }
   
-  func paymentQueueRestoreCompletedTransactionsFinished(queue: SKPaymentQueue) {
+  public func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
     completeRestoreTransactions(queue, error: nil)
   }
   
-  func paymentQueue(queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: NSError) {
+  public func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
     completeRestoreTransactions(queue, error: error)
   }
   
-  private func completePurchaseTransaction(transaction: SKPaymentTransaction) {
-    purchaseHandler?(productIdentifier: transaction.payment.productIdentifier, error: transaction.error)
+  private func completePurchaseTransaction(_ transaction: SKPaymentTransaction) {
+    purchaseHandler?(transaction.payment.productIdentifier, transaction.error)
     purchaseHandler = nil
     
     finishTransaction(transaction)
   }
   
-  private func completeRestoreTransactions(queue: SKPaymentQueue, error: NSError?) {
+  private func completeRestoreTransactions(_ queue: SKPaymentQueue, error: Error?) {
     var productIdentifiers = Set<ProductIdentifier>()
     
-    if let transactions = queue.transactions {
-      for transaction in transactions {
-        if let productIdentifier = transaction.originalTransaction?.payment.productIdentifier {
-          productIdentifiers.insert(productIdentifier)
-        }
-        
-        finishTransaction(transaction)
+    for transaction in queue.transactions {
+      if let productIdentifier = transaction.original?.payment.productIdentifier {
+        productIdentifiers.insert(productIdentifier)
       }
+      
+      finishTransaction(transaction)
     }
     
-    restoreHandler?(productIdentifiers: productIdentifiers, error: error)
+    restoreHandler?(productIdentifiers, error)
     restoreHandler = nil
   }
   
-  private func failedTransaction(transaction: SKPaymentTransaction) {
+  private func failedTransaction(_ transaction: SKPaymentTransaction) {
     // NOTE: Both purchase and restore may come to this state. So need to deal with both handlers.
     
-    purchaseHandler?(productIdentifier: nil, error: transaction.error)
+    purchaseHandler?(nil, transaction.error)
     purchaseHandler = nil
     
-    restoreHandler?(productIdentifiers: Set<ProductIdentifier>(), error: transaction.error)
+    restoreHandler?(Set<ProductIdentifier>(), transaction.error)
     restoreHandler = nil
     
     finishTransaction(transaction)
@@ -187,13 +194,13 @@ extension IAPHelper: SKPaymentTransactionObserver {
   
   // MARK: Helper
   
-  private func finishTransaction(transaction: SKPaymentTransaction) {
+  private func finishTransaction(_ transaction: SKPaymentTransaction) {
     switch transaction.transactionState {
-    case SKPaymentTransactionStatePurchased,
-         SKPaymentTransactionStateRestored,
-         SKPaymentTransactionStateFailed:
+    case SKPaymentTransactionState.purchased,
+         SKPaymentTransactionState.restored,
+         SKPaymentTransactionState.failed:
       
-      SKPaymentQueue.defaultQueue().finishTransaction(transaction)
+      SKPaymentQueue.default().finishTransaction(transaction)
       
     default:
       break
@@ -205,53 +212,53 @@ extension IAPHelper: SKPaymentTransactionObserver {
 
 extension IAPHelper {
   
-  private func validateReceiptInternal(isProduction isProduction: Bool, password: String, handler: ValidateHandler) {
+  fileprivate func validateReceiptInternal(_ isProduction: Bool, password: String?, handler: @escaping ValidateHandler) {
     
     let serverURL = isProduction
       ? "https://buy.itunes.apple.com/verifyReceipt"
       : "https://sandbox.itunes.apple.com/verifyReceipt"
     
-    let appStoreReceiptURL = NSBundle.mainBundle().appStoreReceiptURL
-    guard let receiptData = receiptData(appStoreReceiptURL, password: password), url = NSURL(string: serverURL) else {
-      handler(statusCode: ReceiptStatus.NoRecipt.rawValue, products: nil)
+    let appStoreReceiptURL = Bundle.main.appStoreReceiptURL
+    guard let receiptData = receiptData(appStoreReceiptURL, password: password), let url = URL(string: serverURL) else {
+      handler(ReceiptStatus.noRecipt.rawValue, nil, nil)
       return
     }
     
-    let request = NSMutableURLRequest(URL: url)
-    request.HTTPMethod = "POST"
-    request.HTTPBody = receiptData
+    let request = NSMutableURLRequest(url: url)
+    request.httpMethod = "POST"
+    request.httpBody = receiptData
     
-    let task = NSURLSession.sharedSession().dataTaskWithRequest(request, completionHandler: { (data, response, error) in
+    let task = URLSession.shared.dataTask(with: request as URLRequest) { (data, response, error) in
       
-      guard let data = data where error == nil else {
-        handler(statusCode: nil, products: nil)
+      guard let data = data, error == nil else {
+        handler(nil, nil, nil)
         return
       }
       
       do {
-        let json = try NSJSONSerialization.JSONObjectWithData(data, options:[])
+        let json = try JSONSerialization.jsonObject(with: data, options:[]) as? [String: Any]
         
-        let statusCode = json["status"] as? Int
+        let statusCode = json?["status"] as? Int
         let products = self.parseValidateResultJSON(json)
-        handler(statusCode: statusCode, products: products)
+        handler(statusCode, products, json)
         
       } catch {
-        handler(statusCode: nil, products: nil)
+        handler(nil, nil, nil)
       }
-    })
+    }
     task.resume()
   }
   
-  private func parseValidateResultJSON(json: AnyObject) -> ProductWithExpireDate? {
+  private func parseValidateResultJSON(_ json: [String: Any]?) -> ProductWithExpireDate? {
     var products = ProductWithExpireDate()
     var cancelledProducts = ProductWithExpireDate()
     
-    if let receiptList = json["latest_receipt_info"] as? [AnyObject] {
+    if let receiptList = json?["latest_receipt_info"] as? [AnyObject] {
       for receipt in receiptList {
         if let productID = receipt["product_id"] as? String {
           
           if let expiresDate = parseDate(receipt["expires_date"] as? String) {
-            if let existingExpiresDate = products[productID] where existingExpiresDate.timeIntervalSince1970 >= expiresDate.timeIntervalSince1970 {
+            if let existingExpiresDate = products[productID], existingExpiresDate.timeIntervalSince1970 >= expiresDate.timeIntervalSince1970 {
               // Do nothing
             } else {
               products[productID] = expiresDate
@@ -259,7 +266,7 @@ extension IAPHelper {
           }
           
           if let cancellationDate = parseDate(receipt["cancellation_date"] as? String) {
-            if let existingExpiresDate = cancelledProducts[productID] where existingExpiresDate.timeIntervalSince1970 >= cancellationDate.timeIntervalSince1970 {
+            if let existingExpiresDate = cancelledProducts[productID] , existingExpiresDate.timeIntervalSince1970 >= cancellationDate.timeIntervalSince1970 {
               // Do nothing
             } else {
               products[productID] = cancellationDate
@@ -271,25 +278,29 @@ extension IAPHelper {
     
     // Set the expired date for cancelled product to 1970.
     for (productID, cancelledExpiresDate) in cancelledProducts {
-      if let expiresDate = products[productID] where expiresDate.timeIntervalSince1970 <= cancelledExpiresDate.timeIntervalSince1970 {
-        products[productID] = NSDate(timeIntervalSince1970: 0)
+      if let expiresDate = products[productID] , expiresDate.timeIntervalSince1970 <= cancelledExpiresDate.timeIntervalSince1970 {
+        products[productID] = Date(timeIntervalSince1970: 0)
       }
     }
     
     return products.isEmpty ? nil : products
   }
 
-  private func receiptData(appStoreReceiptURL: NSURL?, password: String) -> NSData? {
-    guard let receiptURL = appStoreReceiptURL, receipt = NSData(contentsOfURL: receiptURL) else {
+  private func receiptData(_ appStoreReceiptURL: URL?, password: String?) -> Data? {
+    guard let receiptURL = appStoreReceiptURL, let receipt = try? Data(contentsOf: receiptURL) else {
         return nil
     }
     
     do {
-      let receiptData = receipt.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
-      let requestContents = ["receipt-data": receiptData, "password": password]
-      let requestData = try NSJSONSerialization.dataWithJSONObject(requestContents, options: [])
+      let receiptData = receipt.base64EncodedString()
+      var requestContents = ["receipt-data": receiptData]
+      if let password = password {
+        requestContents["password"] = password
+      }
+      let requestData = try JSONSerialization.data(withJSONObject: requestContents, options: [])
       return requestData
-    } catch let error as NSError {
+      
+    } catch let error {
       NSLog("\(error)")
     }
     
@@ -299,22 +310,22 @@ extension IAPHelper {
    * dateString demo: "2016-08-24 09:42:11 Etc/GMT"
    * Need to remove "Etc/" to parse the date
    */
-  private func parseDate(dateString: String?) -> NSDate? {
+  private func parseDate(_ dateString: String?) -> Date? {
     guard let dateString = dateString else {
       return nil
     }
     
-    let dateFormatter = NSDateFormatter()
+    let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss z"
-    dateFormatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     
-    let newDateString = dateString.stringByReplacingOccurrencesOfString("Etc/GMT", withString: "GMT")
-    return dateFormatter.dateFromString(newDateString)
+    let newDateString = dateString.replacingOccurrences(of: "Etc/GMT", with: "GMT")
+    return dateFormatter.date(from: newDateString)
   }
 }
 
 public enum ReceiptStatus: Int {
-  case NoRecipt = -999
-  case Valid = 0
-  case TestReceipt = 21007
+  case noRecipt = -999
+  case valid = 0
+  case testReceipt = 21007
 }

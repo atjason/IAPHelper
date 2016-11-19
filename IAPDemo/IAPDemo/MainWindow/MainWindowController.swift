@@ -28,7 +28,7 @@ class MainWindowController: NSWindowController {
   
   // MARK: Action
   
-  @IBAction func getProductList(sender: NSButton!) {
+  @IBAction func getProductList(_ sender: NSButton!) {
     isWorking = true
     accountTypeList.removeAll()
     
@@ -37,9 +37,9 @@ class MainWindowController: NSWindowController {
     productIdentifiers.insert(AccountType.Pro1Y.productIdentifier)
     
     IAP.requestProducts(productIdentifiers) { (response, error) in
-      if let products = response?.products where !products.isEmpty {
+      if let products = response?.products, !products.isEmpty {
         for product in products {
-          if let identifier = product.productIdentifier, accountType = AccountType.getAccountType(identifier) {
+          if let accountType = AccountType.getAccountType(product.productIdentifier) {
             self.accountTypeList.append(accountType)
           }
         }
@@ -50,20 +50,22 @@ class MainWindowController: NSWindowController {
       } else if let invalidProductIdentifiers = response?.invalidProductIdentifiers {
         self.resultString = "Invalid product identifiers: " + invalidProductIdentifiers.description
         
-      } else if error?.code == SKErrorPaymentCancelled {
-        self.resultString = ""
-        
-      } else {
-        self.resultString = error?.localizedDescription ?? "Failed to get product list."
+      } else if let error = error as? NSError {
+        if error.code == SKError.Code.paymentCancelled.rawValue {
+          self.resultString = ""
+          
+        } else {
+          self.resultString = error.localizedDescription
+        }
       }
       
-      NSOperationQueue.mainQueue().addOperationWithBlock({ 
+      OperationQueue.main.addOperation({ 
         self.isWorking = false
       })
     }
   }
   
-  @IBAction func purchase(sender: NSButton!) {
+  @IBAction func purchase(_ sender: NSButton!) {
     if let productIdentifier = selectedAccountType?.productIdentifier {
       isWorking = true
       
@@ -71,49 +73,52 @@ class MainWindowController: NSWindowController {
         if let identifier = productIdentifier {
           self.resultString = identifier
           
-        } else if error?.code == SKErrorPaymentCancelled {
-          self.resultString = ""
-          
-        } else {
-          self.resultString = error?.localizedDescription ?? "Failed to purchase."
+        } else if let error = error as? NSError {
+          if error.code == SKError.Code.paymentCancelled.rawValue {
+            self.resultString = ""
+            
+          } else {
+            self.resultString = error.localizedDescription
+          }
         }
         
-        NSOperationQueue.mainQueue().addOperationWithBlock({
+        OperationQueue.main.addOperation({
           self.isWorking = false
         })
       })
     }
   }
   
-  @IBAction func restore(sender: NSButton!) {
+  @IBAction func restore(_ sender: NSButton!) {
     isWorking = true
     
     IAP.restorePurchases { (productIdentifiers, error) in
       if !productIdentifiers.isEmpty {
         self.resultString = productIdentifiers.description
         
-      } else if error?.code == SKErrorUnknown {
-        // NOTE: if no product ever purchased, will return this error.
-        self.resultString = "No purchased product found."
-        
-      } else if error?.code == SKErrorPaymentCancelled {
-        self.resultString = ""
+      } else if let error = error as? NSError {
+        if error.code == SKError.Code.paymentCancelled.rawValue {
+          self.resultString = ""
+          
+        } else {
+          self.resultString = error.localizedDescription
+        }
         
       } else {
-        self.resultString = error?.localizedDescription ?? "Failed to restore."
+        self.resultString = "No purchased product found."
       }
       
-      NSOperationQueue.mainQueue().addOperationWithBlock({
+      OperationQueue.main.addOperation({
         self.isWorking = false
       })
     }
   }
   
-  @IBAction func validate(sender: NSButton!) {
+  @IBAction func validate(_ sender: NSButton!) {
     isWorking = true
     
-    IAP.validateReceipt(Constants.IAPSharedSecret) { (statusCode, products) in
-      if statusCode == ReceiptStatus.NoRecipt.rawValue {
+    IAP.validateReceipt(Constants.IAPSharedSecret) { (statusCode, products, json) in
+      if statusCode == ReceiptStatus.noRecipt.rawValue {
         self.resultString = "No Receipt."
       } else {
         var productString = ""
@@ -125,7 +130,7 @@ class MainWindowController: NSWindowController {
         self.resultString = "\(statusCode ?? -999): \(productString)"
       }
       
-      NSOperationQueue.mainQueue().addOperationWithBlock({
+      OperationQueue.main.addOperation({
         self.isWorking = false
       })
     }
