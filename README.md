@@ -87,6 +87,15 @@ Just copy `IAPHelper.swift` to your project, and use it as the demo shows.
 
 **NOTE**: You need to change the app bundle id and product id to your own. And also set your shared secret in `Constants.swift`.
 
+## Apps using IAPHelper
+
+It would be great to show your apps using IAPHelper here. Pull requests welcome :)
+
+- [iPaste](https://itunes.apple.com/app/id1056935452?ls=1&mt=12)
+- [iTimer](https://itunes.apple.com/app/id1062139745?ls=1&mt=12)
+- [iHosts](https://itunes.apple.com/app/id1102004240?ls=1&mt=12)
+- [iPic](https://itunes.apple.com/app/id1101244278?ls=1&mt=12)
+
 # Note
 
 This library can't help you understand the basic concepts for IAP. For it, please refer to these documents.
@@ -97,7 +106,4 @@ This library can't help you understand the basic concepts for IAP. For it, pleas
 - 	[Receipt Validation Programming Guide](https://developer.apple.com/library/ios/releasenotes/General/ValidateAppStoreReceipt/Introduction.html)
 - 	[Adding In-App Purchase to your iOS and macOS Applications](https://developer.apple.com/library/ios/technotes/tn2259/_index.html)
 
-## What's Test
-
-It's mainly test on macOS 10.11 and Sierra with auto-renew subscription. Now it's used by my app of [iPaste](https://itunes.apple.com/app/id1056935452?ls=1&mt=12), [iTimer](https://itunes.apple.com/app/id1062139745?ls=1&mt=12), [iHosts](https://itunes.apple.com/app/id1102004240?ls=1&mt=12), [iPic](https://itunes.apple.com/app/id1101244278?ls=1&mt=12).
 
