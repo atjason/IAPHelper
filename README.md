@@ -91,10 +91,11 @@ Just copy `IAPHelper.swift` to your project, and use it as the demo shows.
 
 It would be great to show your apps using IAPHelper here. Pull requests welcome :)
 
-- [iPaste](https://itunes.apple.com/app/id1056935452?ls=1&mt=12)
-- [iTimer](https://itunes.apple.com/app/id1062139745?ls=1&mt=12)
-- [iHosts](https://itunes.apple.com/app/id1102004240?ls=1&mt=12)
-- [iPic](https://itunes.apple.com/app/id1101244278?ls=1&mt=12)
+- [Klib](https://itunes.apple.com/cn/app/id1196268448?mt=12&at=1000lv4R&ct=klib_me)
+- [iPic](https://itunes.apple.com/app/id1101244278?ls=1&mt=12&at=1000lv4R&ct=klib_me)
+- [iPaste](https://itunes.apple.com/app/id1056935452?ls=1&mt=12&at=1000lv4R&ct=klib_me)
+- [iTimer](https://itunes.apple.com/app/id1062139745?ls=1&mt=12&at=1000lv4R&ct=klib_me)
+- [iHosts](https://itunes.apple.com/app/id1102004240?ls=1&mt=12&at=1000lv4R&ct=klib_me)
 
 # Note
 
