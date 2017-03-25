@@ -246,38 +246,55 @@ extension IAPHelper {
     task.resume()
   }
   
-  private func parseValidateResultJSON(_ json: [String: Any]?) -> ProductWithExpireDate? {
-    var products = ProductWithExpireDate()
-    var cancelledProducts = ProductWithExpireDate()
+  internal func parseValidateResultJSON(_ json: [String: Any]?) -> ProductWithExpireDate? {
     
-    if let receiptList = json?["latest_receipt_info"] as? [AnyObject] {
-      for receipt in receiptList {
-        if let productID = receipt["product_id"] as? String {
+    var products = ProductWithExpireDate()
+    var canceledProducts = ProductWithExpireDate()
+    var productDateDict = [String: [ProductDateHelper]]()
+    let dateOf5000 = Date(timeIntervalSince1970: 95617584000) // 5000-01-01
+    
+    if let receipt = json?["receipt"] as? [String: Any],
+      let inAppPurchaseList = receipt["in_app"] as? [[String: Any]] {
+      
+      for inAppPurchase in inAppPurchaseList {
+        if let productID = inAppPurchase["product_id"] as? String,
+          let purchaseDate = parseDate(inAppPurchase["purchase_date_ms"] as? String) {
           
-          if let expiresDate = parseDate(receipt["expires_date"] as? String) {
-            if let existingExpiresDate = products[productID], existingExpiresDate.timeIntervalSince1970 >= expiresDate.timeIntervalSince1970 {
-              // Do nothing
-            } else {
-              products[productID] = expiresDate
-            }
+          let expiresDate = parseDate(inAppPurchase["expires_date_ms"] as? String)
+          let cancellationDate = parseDate(inAppPurchase["cancellation_date_ms"] as? String)
+          
+          let productDateHelper = ProductDateHelper(purchaseDate: purchaseDate, expiresDate: expiresDate, canceledDate: cancellationDate)
+          if productDateDict[productID] == nil {
+            productDateDict[productID] = [productDateHelper]
+          } else {
+            productDateDict[productID]?.append(productDateHelper)
           }
           
-          if let cancellationDate = parseDate(receipt["cancellation_date"] as? String) {
-            if let existingExpiresDate = cancelledProducts[productID] , existingExpiresDate.timeIntervalSince1970 >= cancellationDate.timeIntervalSince1970 {
-              // Do nothing
+          if let cancellationDate = cancellationDate {
+            if let lastCanceledDate = canceledProducts[productID] {
+              if lastCanceledDate.timeIntervalSince1970 < cancellationDate.timeIntervalSince1970 {
+                canceledProducts[productID] = cancellationDate
+              }
             } else {
-              products[productID] = cancellationDate
+              canceledProducts[productID] = cancellationDate
             }
           }
         }
       }
     }
     
-    // Set the expired date for cancelled product to 1970.
-    for (productID, cancelledExpiresDate) in cancelledProducts {
-      if let expiresDate = products[productID] , expiresDate.timeIntervalSince1970 <= cancelledExpiresDate.timeIntervalSince1970 {
-        products[productID] = Date(timeIntervalSince1970: 0)
+    for (productID, productDateHelpers) in productDateDict {
+      var date = Date(timeIntervalSince1970: 0)
+      let lastCanceledDate = canceledProducts[productID]
+      
+      for productDateHelper in productDateHelpers {
+        let validDate = productDateHelper.getValidDate(lastCanceledDate: lastCanceledDate, unlimitedDate: dateOf5000)
+        if date.timeIntervalSince1970 < validDate.timeIntervalSince1970 {
+          date = validDate
+        }
       }
+      
+      products[productID] = date
     }
     
     return products.isEmpty ? nil : products
@@ -303,21 +320,35 @@ extension IAPHelper {
     
     return nil
   }
-  /*
-   * dateString demo: "2016-08-24 09:42:11 Etc/GMT"
-   * Need to remove "Etc/" to parse the date
-   */
-  private func parseDate(_ dateString: String?) -> Date? {
-    guard let dateString = dateString else {
+  
+  private func parseDate(_ str: String?) -> Date? {
+    guard let str = str, let msTimeInterval = TimeInterval(str) else {
       return nil
     }
     
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss z"
-    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+    return Date(timeIntervalSince1970: msTimeInterval / 1000)
+  }
+}
+
+internal struct ProductDateHelper {
+  var purchaseDate = Date(timeIntervalSince1970: 0)
+  var expiresDate: Date? = nil
+  var canceledDate: Date? = nil
+  
+  func getValidDate(lastCanceledDate: Date?, unlimitedDate: Date) -> Date {
+    if let lastCanceledDate = lastCanceledDate {
+      return (purchaseDate.timeIntervalSince1970 > lastCanceledDate.timeIntervalSince1970)
+        ? (expiresDate ?? unlimitedDate)
+        : lastCanceledDate
+    }
     
-    let newDateString = dateString.replacingOccurrences(of: "Etc/GMT", with: "GMT")
-    return dateFormatter.date(from: newDateString)
+    if let canceledDate = canceledDate {
+      return canceledDate
+    } else if let expiresDate = expiresDate {
+      return expiresDate
+    } else {
+      return unlimitedDate
+    }
   }
 }
 
