@@ -253,31 +253,36 @@ extension IAPHelper {
     var productDateDict = [String: [ProductDateHelper]]()
     let dateOf5000 = Date(timeIntervalSince1970: 95617584000) // 5000-01-01
     
+    var totalInAppPurchaseList = [[String: Any]]()
     if let receipt = json?["receipt"] as? [String: Any],
       let inAppPurchaseList = receipt["in_app"] as? [[String: Any]] {
-      
-      for inAppPurchase in inAppPurchaseList {
-        if let productID = inAppPurchase["product_id"] as? String,
-          let purchaseDate = parseDate(inAppPurchase["purchase_date_ms"] as? String) {
-          
-          let expiresDate = parseDate(inAppPurchase["expires_date_ms"] as? String)
-          let cancellationDate = parseDate(inAppPurchase["cancellation_date_ms"] as? String)
-          
-          let productDateHelper = ProductDateHelper(purchaseDate: purchaseDate, expiresDate: expiresDate, canceledDate: cancellationDate)
-          if productDateDict[productID] == nil {
-            productDateDict[productID] = [productDateHelper]
-          } else {
-            productDateDict[productID]?.append(productDateHelper)
-          }
-          
-          if let cancellationDate = cancellationDate {
-            if let lastCanceledDate = canceledProducts[productID] {
-              if lastCanceledDate.timeIntervalSince1970 < cancellationDate.timeIntervalSince1970 {
-                canceledProducts[productID] = cancellationDate
-              }
-            } else {
+      totalInAppPurchaseList += inAppPurchaseList
+    }
+    if let inAppPurchaseList = json?["latest_receipt_info"] as? [[String: Any]] {
+      totalInAppPurchaseList += inAppPurchaseList
+    }
+    
+    for inAppPurchase in totalInAppPurchaseList {
+      if let productID = inAppPurchase["product_id"] as? String,
+        let purchaseDate = parseDate(inAppPurchase["purchase_date_ms"] as? String) {
+        
+        let expiresDate = parseDate(inAppPurchase["expires_date_ms"] as? String)
+        let cancellationDate = parseDate(inAppPurchase["cancellation_date_ms"] as? String)
+        
+        let productDateHelper = ProductDateHelper(purchaseDate: purchaseDate, expiresDate: expiresDate, canceledDate: cancellationDate)
+        if productDateDict[productID] == nil {
+          productDateDict[productID] = [productDateHelper]
+        } else {
+          productDateDict[productID]?.append(productDateHelper)
+        }
+        
+        if let cancellationDate = cancellationDate {
+          if let lastCanceledDate = canceledProducts[productID] {
+            if lastCanceledDate.timeIntervalSince1970 < cancellationDate.timeIntervalSince1970 {
               canceledProducts[productID] = cancellationDate
             }
+          } else {
+            canceledProducts[productID] = cancellationDate
           }
         }
       }
